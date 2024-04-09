@@ -25,7 +25,7 @@ scene.add(torus);
 function animate(){
   requestAnimationFrame(animate);
 
-  controls.update();
+  //controls.update();
 
   renderer.render(scene, camera);
 }
