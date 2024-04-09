@@ -21,7 +21,7 @@ const torus = new THREE.Mesh(geometry, material);
 
 scene.add(torus);
 
-const controls = new OrbitControls(camera, renderer.domElement);
+//const controls = new OrbitControls(camera, renderer.domElement);
 function animate(){
   requestAnimationFrame(animate);
 
