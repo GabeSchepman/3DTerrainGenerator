@@ -2,10 +2,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link type="text/css" rel="stylesheet" href="style.css">
     <title>3D terrain generator</title>
 </head>
 <body>
-    <canvas class="webgl"></canvas>
+    <canvas id="bg"></canvas>
+    <script type="importmap">
+        {
+            "imports": {
+              "three": "https://unpkg.com/three/build/three.module.js",
+              "three/addons/": "https://unpkg.com/three/examples/jsm/"
+            }
+        }
+        </script>
     <script type="module" src="./main.js"></script>
 </body>
 </html>
