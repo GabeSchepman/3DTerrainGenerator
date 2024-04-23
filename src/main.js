@@ -1,5 +1,5 @@
-import * as THREE from "/libs/three.module.js";
-import { OrbitControls } from "/libs/OrbitControls.js";
+import * as THREE from "./libs/three.module.js";
+import { OrbitControls } from "./libs/OrbitControls.js";
 import * as Noise from "./NoiseGen.js";
 import * as Texture from "./TextureGen.js";
 
