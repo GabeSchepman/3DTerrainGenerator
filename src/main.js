@@ -1,5 +1,5 @@
-import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import * as THREE from "/libs/three.module.js";
+import { OrbitControls } from "/libs/OrbitControls.js";
 import * as Noise from "./NoiseGen.js";
 import * as Texture from "./TextureGen.js";
 
@@ -28,7 +28,6 @@ function init() {
 
     camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 10000);
     camera.position.set(600, 600, 0);
-    
 
     const data = Noise.generate2DNoiseMap(mapWidth, mapHeight, scale, octaves, persistence, lacunarity, offsetX, offsetY, seed);
 
