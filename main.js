@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { OrbitControls } from "./libs/OrbitControls.js";
-import * as Noise from "./src/NoiseGen.js";
+import { OrbitControls } from "OrbitControls";
+import * as Noise from "noise";
 import * as Texture from "./src/TextureGen.js";
 
 let renderer, scene, camera, controls;

@@ -1,4 +1,4 @@
-import * as THREE from "./libs/three.module.js";
+import * as THREE from "three";
 
 export function generateTexture(data, width, height) {
     let context, image, imageData, shade;

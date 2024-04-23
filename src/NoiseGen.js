@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { SimplexNoise } from "./libs/SimplexNoise.js";
-import XORShift64 from "./libs/xorshift64.js";
+import { SimplexNoise } from "SimplexNoise";
+import XORShift64 from "XORShift64";
 
 export function generate2DNoiseMap(mapWidth, mapHeight, scale, octaves, persistence, lacunarity, offsetX, offsetY, seed) {
     const noiseMap = new Float32Array(mapWidth * mapHeight);
