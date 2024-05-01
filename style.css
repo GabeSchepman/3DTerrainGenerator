@@ -1,3 +1,15 @@
 body {
     margin: 0;
 }
+canvas {
+    position: absolute
+}
+#heightmap {
+    border: 1px solid #AAAAAA;
+    height: 128px;
+    left: 20px;
+    position: absolute;
+    top: 20px;
+    width: 128px;
+    z-index: 1;
+}

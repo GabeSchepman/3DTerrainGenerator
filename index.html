@@ -11,13 +11,16 @@
                     "three": "./libs/three.module.js",
                     "OrbitControls": "./libs/OrbitControls.js",
                     "XORShift64": "./libs/xorshift64.js",
+                    "SimplexNoise": "./libs/SimplexNoise.js",
+                    "gui": "./libs/lil-gui.module.min.js",
                     "noise": "./src/NoiseGen.js",
-                    "SimplexNoise": "./libs/SimplexNoise.js"
+                    "texture": "./src/TextureGen.js"
                 }
             }
         </script>
     </head>
     <body>
+        <canvas id="heightmap"></canvas>
         <canvas id="bg"></canvas>
         <script type="module" src="main.js"></script>
     </body>
