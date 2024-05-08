@@ -4,6 +4,9 @@ body {
 canvas {
     position: absolute
 }
+#gui_container{
+  position: absolute;
+}
 #heightmap {
     border: 1px solid #AAAAAA;
     height: 128px;
@@ -12,4 +15,11 @@ canvas {
     top: 20px;
     width: 128px;
     z-index: 1;
+}
+
+.lil-gui { 
+	--width: 400px;
+    --widget-height: 30px;
+	--name-width: 20%;
+    --slider-input-width: 10%;
 }
