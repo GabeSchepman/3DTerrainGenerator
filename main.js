@@ -5,22 +5,25 @@ import * as Texture from "texture";
 import GUI from "gui";
 import Stats from "stats";
 
+
 // Terrain display and generation settings
-const Settings = {
-    mapSize: 8192,
+const s = {
+    mapSize: 2048,
     segments: 512,
     scale: 250,
-    maxHeight: 220,
+    maxHeight: 100,
     octaves: 4,
     persistence: 0.5,
     lacunarity: 2,
     offsetX: 0,
     offsetY: 0,
     seed: 12345,
-    wireframe: false
+    wireframe: false,
+    lod: 0,
+    heightFunc: 'heightPow'
 };
 
-let renderer, scene, camera, controls, stats, plane, light;
+let renderer, scene, camera, controls, stats, plane, light, geometry, data, detailIncrement;
 let regions = [
     {
         name: 'water',
@@ -50,6 +53,11 @@ let regions = [
 
 ];
 
+init();
+setupCamera();
+setupGUI();
+animate();
+
 /**
  * Setup three.js camera parameters
 */
@@ -59,25 +67,6 @@ function setupCamera() {
     controls = new OrbitControls(camera, renderer.domElement);
 }
 
-/**
- * Setup lilgui for real-time interactive adjustable parameters
-*/
-function setupGUI() {
-    //const gui = new GUI({container: document.getElementById('gui_container')});
-    const gui = new GUI();
-
-    gui.add(Settings, "mapSize").min(128).max(8192).step(128).onChange(() => updateTerrain());
-    gui.add(Settings, "segments").min(16).max(1024).step(16).onChange(() => updateTerrain());
-    gui.add(Settings, "scale").min(1).max(1000).step(5).onChange(() => updateTerrain());
-    gui.add(Settings, "maxHeight").min(10).max(1000).step(5).onChange(() => updateTerrain());
-    gui.add(Settings, "octaves").min(1).max(16).step(1).onChange(() => updateTerrain());
-    gui.add(Settings, "persistence").min(0.1).max(1).step(0.05).onChange(() => updateTerrain());
-    gui.add(Settings, "lacunarity").min(1).max(2.5).step(0.1).onChange(() => updateTerrain());
-    gui.add(Settings, "offsetX").min(0).max(10).step(1).onChange(() => updateTerrain());
-    gui.add(Settings, "offsetY").min(0).max(10).step(1).onChange(() => updateTerrain());
-    gui.add(Settings, "seed").min(1).max(999999).step(1).onChange(() => updateTerrain());
-    gui.add(Settings, "wireframe").onChange(() => updateTerrain());
-}
 
 /**
  * Initial rendering setup
@@ -108,17 +97,16 @@ function init() {
     document.body.appendChild(stats.domElement);
 }
 
-/**
- * Main animation loop ran every frame
-*/
-function animate() {
-    requestAnimationFrame(animate);
+function height(x) {
+    return x
+}
 
-    controls.update();
-    stats.update();
-    renderer.render(scene, camera);
-    //console.log(camera.position)
-    //console.log(renderer.info.render)
+function heightPow(x) {
+    return Math.pow(x, 5)
+}
+
+function heightRound(x) {
+    return Math.round(x * 10) / 10
 }
 
 /**
@@ -126,55 +114,95 @@ function animate() {
 */
 function updateTerrain() {
     scene.remove(plane);
-    plane = generatePlane();
+    generatePlane();
     scene.add(plane);
 }
 
 function generatePlane() {
-    const data = Noise.generate2DNoiseMap(
-        Settings.segments,
-        Settings.segments,
-        Settings.scale,
-        Settings.octaves,
-        Settings.persistence,
-        Settings.lacunarity,
-        Settings.offsetX,
-        Settings.offsetY,
-        Settings.seed,
+    s.heightFunc = eval(s.heightFunc);
+    data = Noise.generate2DNoiseMap(
+        s.segments,
+        s.segments,
+        s.scale,
+        s.octaves,
+        s.persistence,
+        s.lacunarity,
+        s.offsetX,
+        s.offsetY,
+        s.seed,
     );
-    const geometry = new THREE.PlaneGeometry(Settings.mapSize, Settings.mapSize, Settings.segments - 1, Settings.segments - 1);
 
-    const texture = new THREE.CanvasTexture(Texture.generateTexture(data, Settings.segments, Settings.segments, regions));
+    const texture = new THREE.CanvasTexture(Texture.generateTexture(data, s.segments, s.segments, regions));
     texture.wrapS = THREE.ClampToEdgeWrapping;
     texture.wrapT = THREE.ClampToEdgeWrapping;
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.magFilter = THREE.NearestFilter;
 
-    const material = new THREE.MeshLambertMaterial({ map: texture, wireframe: Settings.wireframe, flatShading: true });
-    plane = new THREE.Mesh(geometry, material);
-    let pos = geometry.getAttribute("position");
-    for (let i = 0; i < data.length; i++) {
-        pos.setZ(i, Math.pow(data[i], 4) * Settings.maxHeight);
+    let material;
+    if (s.wireframe) {
+        material = new THREE.MeshBasicMaterial({ map: texture, wireframe: s.wireframe });
+    } else {
+        material = new THREE.MeshLambertMaterial({ map: texture, flatShading: true });
     }
-    geometry.setAttribute("position", pos);
-    geometry.computeVertexNormals();
-    geometry.normalsNeedUpdate = true;
+
+    // Plane vertex manipulation
+    detailIncrement = (s.lod == 0) ? 1 : (s.lod * 2);
+    geometry = new THREE.PlaneGeometry(s.segments, s.segments, (s.segments - 1) / (detailIncrement), (s.segments - 1) / (detailIncrement));
+    plane = new THREE.Mesh(geometry, material);
+    const pos = geometry.getAttribute("position");
+    let vindex = 0;
+    for (let y = 0; y < s.segments; y += detailIncrement) {
+        for (let x = 0; x < s.segments; x += detailIncrement) {
+            pos.setZ(vindex, s.heightFunc(data[x + y * s.segments]) * s.maxHeight);
+            vindex++;
+        }
+    }
     return plane;
 }
 
 /**
  * Resize rendering anytime window is resized
- */
+*/
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    controls.handleResize();
 }
 
-init();
-setupCamera();
-setupGUI();
-animate();
+/**
+ * Setup lilgui for real-time interactive adjustable parameters
+*/
+function setupGUI() {
+    //const gui = new GUI({container: document.getElementById('gui_container')});
+    const gui = new GUI();
+
+    //gui.add(Settings, "mapSize").min(128).max(8192).step(128).onChange(() => updateTerrain());
+    gui.add(s, "segments").min(16).max(1024).step(16).onChange(() => updateTerrain());
+    gui.add(s, "scale").min(1).max(1000).step(5).onChange(() => updateTerrain());
+    gui.add(s, "maxHeight").min(10).max(150).step(5).onChange(() => updateTerrain());
+    gui.add(s, "octaves").min(1).max(16).step(1).onChange(() => updateTerrain());
+    gui.add(s, "persistence").min(0.1).max(1).step(0.05).onChange(() => updateTerrain());
+    gui.add(s, "lacunarity").min(1).max(2.5).step(0.1).onChange(() => updateTerrain());
+    gui.add(s, "offsetX").min(-10).max(10).step(.1).onChange(() => updateTerrain());
+    gui.add(s, "offsetY").min(-10).max(10).step(.1).onChange(() => updateTerrain());
+    gui.add(s, "seed").min(1).max(999999).step(1).onChange(() => updateTerrain());
+    gui.add(s, "wireframe").onChange(() => updateTerrain());
+    gui.add(s, "lod").min(0).max(4).step(1).onChange(() => updateTerrain()).name('Level of Detail Simplification');
+    gui.add(s, "heightFunc", ['height', 'heightPow', 'heightRound']).onChange(() => updateTerrain()).name('Height Function');
+}
+
+/**
+ * Main animation loop ran every frame
+*/
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    stats.update();
+    plane.geometry.attributes.position.needsUpdate = true;
+    renderer.render(scene, camera);
+    //console.log(camera.position)
+    //console.log(renderer.info.render)
+}
+

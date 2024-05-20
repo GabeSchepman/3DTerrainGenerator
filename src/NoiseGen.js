@@ -25,7 +25,7 @@ export function generate2DNoiseMap(mapWidth, mapHeight, scale, octaves, persiste
 
     // Generate random offsets for each octave. Having each octave randomly offset helps 
     // keep the sample values taken from each octave independent from eachother
-    const octaveOffsets = new Int32Array(octaves * 2);
+    const octaveOffsets = new Float32Array(octaves * 2);
     for (let i = 0; i < octaves; i++) {
         const offX = prng.randRange(-100000, 100000) + offsetX;
         const offY = prng.randRange(-100000, 100000) + offsetY;
@@ -91,6 +91,5 @@ export function generate2DNoiseMap(mapWidth, mapHeight, scale, octaves, persiste
             noiseMap[index] = THREE.MathUtils.inverseLerp(minNoiseHeight, maxNoiseHeight, noiseMap[index]);
         }
     }
-    console.log(noiseMap);
     return noiseMap;
 }
